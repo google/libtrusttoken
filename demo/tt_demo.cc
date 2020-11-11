@@ -16,9 +16,9 @@
 
 #include <trust_token.h>
 
-#include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <sstream>
 
 #include <vector>
@@ -29,8 +29,9 @@ using namespace std;
 
 TrustTokenVersion version = v2_privatemetadata;
 
-bool RunQuery(sqlite3 *db, std::string query, int (*cb)(void*, int, char**, char**)) {
-  char* error;
+bool RunQuery(sqlite3 *db, std::string query,
+              int (*cb)(void *, int, char **, char **)) {
+  char *error;
   int ret = sqlite3_exec(db, query.c_str(), cb, db, &error);
   if (ret != SQLITE_OK) {
     fprintf(stderr, "DB Error: %s\n", error);
@@ -47,7 +48,10 @@ bool SetupTables(sqlite3 *db) {
                 NULL)) {
     return false;
   }
-  if (!RunQuery(db, "CREATE TABLE IF NOT EXISTS tokens (id integer PRIMARY KEY, value BLOB);", NULL)) {
+  if (!RunQuery(db,
+                "CREATE TABLE IF NOT EXISTS tokens (id integer PRIMARY KEY, "
+                "value BLOB);",
+                NULL)) {
     return false;
   }
   return true;
@@ -63,10 +67,10 @@ bool AddKey(sqlite3 *db, int id) {
       db, "INSERT INTO keys(id, srrKey, private, public) VALUES(?, 0, ?, ?);",
       -1, &stmt, NULL);
   if (ret != SQLITE_OK || sqlite3_bind_int(stmt, 1, id) != SQLITE_OK ||
-      sqlite3_bind_blob(stmt, 2, priv_key.data(), priv_key.size(), SQLITE_STATIC) !=
-          SQLITE_OK ||
-      sqlite3_bind_blob(stmt, 3, pub_key.data(), pub_key.size(), SQLITE_STATIC) !=
-          SQLITE_OK ||
+      sqlite3_bind_blob(stmt, 2, priv_key.data(), priv_key.size(),
+                        SQLITE_STATIC) != SQLITE_OK ||
+      sqlite3_bind_blob(stmt, 3, pub_key.data(), pub_key.size(),
+                        SQLITE_STATIC) != SQLITE_OK ||
       sqlite3_step(stmt) != SQLITE_DONE) {
     fprintf(stderr, "DB Error: %s\n", sqlite3_errmsg(db));
     return false;
@@ -87,7 +91,7 @@ bool LoadKeys(sqlite3 *db, TrustTokenIssuer *issuer) {
   int ttKeyCount = sqlite3_column_int(stmt, 0);
   sqlite3_finalize(stmt);
   while (ttKeyCount < 3) {
-    if (!AddKey((sqlite3*)db, ttKeyCount++)) {
+    if (!AddKey((sqlite3 *)db, ttKeyCount++)) {
       return false;
     }
   }
@@ -121,9 +125,8 @@ bool CheckToken(sqlite3 *db, bool *out_found, std::vector<uint8_t> token) {
   sqlite3_stmt *stmt = NULL;
   int ret = sqlite3_prepare(db, "SELECT COUNT(*) from tokens WHERE value=?;",
                             -1, &stmt, NULL);
-  if (ret != SQLITE_OK ||
-      sqlite3_bind_blob(stmt, 1, token.data(), token.size(), SQLITE_STATIC) !=
-          SQLITE_OK) {
+  if (ret != SQLITE_OK || sqlite3_bind_blob(stmt, 1, token.data(), token.size(),
+                                            SQLITE_STATIC) != SQLITE_OK) {
     fprintf(stderr, "DB Error: %s\n", sqlite3_errmsg(db));
     return false;
   }
@@ -139,7 +142,7 @@ bool CheckToken(sqlite3 *db, bool *out_found, std::vector<uint8_t> token) {
                         NULL);
   if (ret != SQLITE_OK ||
       sqlite3_bind_blob(stmt, 1, token.data(), token.size(), SQLITE_STATIC) !=
-      SQLITE_OK ||
+          SQLITE_OK ||
       sqlite3_step(stmt) != SQLITE_DONE) {
     fprintf(stderr, "DB Error: %s\n", sqlite3_errmsg(db));
     return false;
@@ -149,16 +152,9 @@ bool CheckToken(sqlite3 *db, bool *out_found, std::vector<uint8_t> token) {
   return true;
 }
 
-enum TTAction {
-  KEYS,
-  ISSUE,
-  REDEEM,
-  ECHO
-};
+enum TTAction { KEYS, ISSUE, REDEEM, ECHO };
 
-int main(int argc, char **argv, char **envp)
-{
-
+int main(int argc, char **argv, char **envp) {
   sqlite3 *db;
   if (sqlite3_open("/var/www/ttd.db", &db)) {
     fprintf(stderr, "DB Error: %s\n", sqlite3_errmsg(db));
@@ -176,7 +172,7 @@ int main(int argc, char **argv, char **envp)
 
   enum TTAction action = KEYS;
 
-  const char* path_raw = std::getenv("REQUEST_URI");
+  const char *path_raw = std::getenv("REQUEST_URI");
   if (path_raw == NULL) {
     return 1;
   }
@@ -200,7 +196,7 @@ int main(int argc, char **argv, char **envp)
     cout << "\r\n";
     cout << issuer->GetCommitment(1) << "\r\n";
   } else if (action == ISSUE) {
-    const char* request = std::getenv("HTTP_SEC_TRUST_TOKEN");
+    const char *request = std::getenv("HTTP_SEC_TRUST_TOKEN");
     if (request == NULL) {
       cout << "\r\nSec-Trust-Token header missing.\r\n";
       return 0;
@@ -209,7 +205,7 @@ int main(int argc, char **argv, char **envp)
     uint32_t public_metadata = 0;
     uint8_t private_metadata = 1;
 
-    const char* query_raw = std::getenv("QUERY_STRING");
+    const char *query_raw = std::getenv("QUERY_STRING");
     if (query_raw == NULL) {
       cout << "\r\nMissing query.\r\n";
       return 1;
@@ -223,31 +219,31 @@ int main(int argc, char **argv, char **envp)
       if (eqPos != std::string::npos) {
         std::string key = param.substr(0, eqPos);
         std::string value = param.substr(eqPos + 1);
-	try {
-	  if (key.compare("public") == 0) {
-	    public_metadata = std::stoi(value);
-	    if (public_metadata < 0 || public_metadata > 2) {
-	      cout << "\r\nBad Parameters.\r\n";
-	      return 1;
-	    }
-	  } else if (key.compare("private") == 0) {
-	    private_metadata = std::stoi(value);
-	    if (private_metadata < 0 || private_metadata > 1) {
-	      cout << "\r\nBad Parameters.\r\n";
-	      return 1;
-	    }
-	  }
-	} catch(...) {
-	  cout << "\r\nBad Parameters.\r\n";
-	  return 1;
-	}
+        try {
+          if (key.compare("public") == 0) {
+            public_metadata = std::stoi(value);
+            if (public_metadata < 0 || public_metadata > 2) {
+              cout << "\r\nBad Parameters.\r\n";
+              return 1;
+            }
+          } else if (key.compare("private") == 0) {
+            private_metadata = std::stoi(value);
+            if (private_metadata < 0 || private_metadata > 1) {
+              cout << "\r\nBad Parameters.\r\n";
+              return 1;
+            }
+          }
+        } catch (...) {
+          cout << "\r\nBad Parameters.\r\n";
+          return 1;
+        }
       }
       query.erase(0, pos + 1);
     }
 
     size_t tokens_issued;
     std::string resp = issuer->Issue(&tokens_issued, public_metadata,
-                                    private_metadata, request);
+                                     private_metadata, request);
     if (resp != "") {
       cout << "Sec-Trust-Token: " << resp << "\r\n";
       cout << "Sec-TT-Count: Issuing " << tokens_issued << " tokens.\r\n";
@@ -257,7 +253,7 @@ int main(int argc, char **argv, char **envp)
       cout << "\r\n\r\nError issuing tokens.\r\n";
     }
   } else if (action == REDEEM) {
-    const char* request = std::getenv("HTTP_SEC_TRUST_TOKEN");
+    const char *request = std::getenv("HTTP_SEC_TRUST_TOKEN");
     if (request == NULL) {
       cout << "\r\nSec-Trust-Token header missing.\r\n";
       return 0;
@@ -268,7 +264,7 @@ int main(int argc, char **argv, char **envp)
     std::vector<uint8_t> token;
     std::string client_data;
     if (!issuer->Redeem(&public_metadata, &private_metadata, &token,
-                       &client_data, request)) {
+                        &client_data, request)) {
       cout << "\r\nInternal error.\r\n";
       return 1;
     }
@@ -295,7 +291,7 @@ int main(int argc, char **argv, char **envp)
       cout << "Duplicate token.\r\n";
     }
   } else if (action == ECHO) {
-    const char* srr = std::getenv("HTTP_SEC_SIGNED_REDEMPTION_RECORD");
+    const char *srr = std::getenv("HTTP_SEC_SIGNED_REDEMPTION_RECORD");
     cout << "\r\n" << srr << "\r\n";
   }
 

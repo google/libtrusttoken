@@ -35,14 +35,12 @@ add_library(
   src/trust_token.cc
 )
 
-target_link_libraries(trusttoken ${BORINGSSL_INSTALL_DIR}/crypto/libcrypto.a)
-
 include_directories(${BORINGSSL_INSTALL_DIR}/include)
 include_directories(include)
 link_directories(${BORINGSSL_INSTALL_DIR}/crypto)
 
 add_dependencies(trusttoken boringssl)
-
+target_link_libraries(trusttoken crypto)
 
 add_executable(
   tt_demo

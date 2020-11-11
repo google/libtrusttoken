@@ -18,3 +18,19 @@ Currently libtrusttoken supports two versions of the Trust Token API:
 1. v2_privatemetadata - A variant that allows the use of one bit of private metadata and 3 public metadata values.
 
 Both versions of the Trust Token API are compatible with Chrome M88.
+
+## Building
+
+Using Ninja (note the 'N' is capitalized in the cmake invocation):
+
+    mkdir build
+    cd build
+    cmake -GNinja ..
+    ninja
+
+Using Make (does not work on Windows):
+
+    mkdir build
+    cd build
+    cmake ..
+    make

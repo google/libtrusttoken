@@ -16,9 +16,9 @@
 #include <openssl/mem.h>
 #include <trust_token.h>
 
-#include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <sstream>
 
 #include <vector>
@@ -58,8 +58,10 @@ static std::string EncodeBase64(const std::vector<uint8_t> in) {
 
 static const TRUST_TOKEN_METHOD *GetMethod(TrustTokenVersion version) {
   switch (version) {
-    case v2_allpublic: return TRUST_TOKEN_experiment_v2_voprf();
-    case v2_privatemetadata: return TRUST_TOKEN_experiment_v2_pmb();
+    case v2_allpublic:
+      return TRUST_TOKEN_experiment_v2_voprf();
+    case v2_privatemetadata:
+      return TRUST_TOKEN_experiment_v2_pmb();
   }
   fprintf(stderr, "Unknown Trust Token Version\n");
   return nullptr;
@@ -67,8 +69,10 @@ static const TRUST_TOKEN_METHOD *GetMethod(TrustTokenVersion version) {
 
 static std::string GetProtocolString(TrustTokenVersion version) {
   switch (version) {
-    case v2_allpublic: return "TrustTokenV2VOPRF";
-    case v2_privatemetadata: return "TrustTokenV2PMB";
+    case v2_allpublic:
+      return "TrustTokenV2VOPRF";
+    case v2_privatemetadata:
+      return "TrustTokenV2PMB";
   }
   fprintf(stderr, "Unknown Trust Token Version\n");
   return "";
@@ -103,9 +107,7 @@ TrustTokenIssuer::TrustTokenIssuer(TrustTokenVersion issuer_version,
   batchsize = max_batchsize;
 }
 
-TrustTokenIssuer::~TrustTokenIssuer() {
-  TRUST_TOKEN_ISSUER_free(ctx);
-}
+TrustTokenIssuer::~TrustTokenIssuer() { TRUST_TOKEN_ISSUER_free(ctx); }
 
 bool TrustTokenIssuer::AddKey(std::vector<uint8_t> pub_key,
                               std::vector<uint8_t> priv_key, uint32_t id,
@@ -174,7 +176,7 @@ bool TrustTokenIssuer::Redeem(uint32_t *out_public, bool *out_private,
   *out_private = (private_metadata == 0 ? false : true);
   out_token->assign(rtoken->data, rtoken->data + rtoken->len);
   TRUST_TOKEN_free(rtoken);
-  out_client_data->assign((char*)client_data, client_data_len);
+  out_client_data->assign((char *)client_data, client_data_len);
   OPENSSL_free(client_data);
   return true;
 }
