@@ -53,7 +53,7 @@ static std::string EncodeBase64(const std::vector<uint8_t> in) {
     fprintf(stderr, "EVP_EncodeBlock failed\n");
     return "";
   }
-  return std::string(out.begin(), out.end());
+  return std::string(out.begin(), out.end() - 1);
 }
 
 static const TRUST_TOKEN_METHOD *GetMethod(TrustTokenVersion version) {

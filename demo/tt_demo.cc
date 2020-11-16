@@ -177,7 +177,6 @@ int main(int argc, char **argv, char **envp) {
     return 1;
   }
   string path = std::string(path_raw);
-  cerr << path;
   if (path.find("/k") != std::string::npos) {
     action = KEYS;
   } else if (path.find("/i") != std::string::npos) {
