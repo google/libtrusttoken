@@ -46,5 +46,5 @@ add_executable(
   tt_demo
   demo/tt_demo.cc
 )
-add_dependencies(tt_demo trusttoken)
+add_dependencies(tt_demo trusttoken boringssl)
 target_link_libraries(tt_demo trusttoken pthread sqlite3)

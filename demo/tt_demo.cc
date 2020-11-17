@@ -14,6 +14,8 @@
 
 #include <sqlite3.h>
 
+#include <openssl/base64.h>
+
 #include <trust_token.h>
 
 #include <cstdlib>
@@ -278,9 +280,24 @@ int main(int argc, char **argv, char **envp) {
     if (!found) {
       std::ostringstream ss;
       ss << "{\"public_metadata\": " << public_metadata << ", ";
-      ss << "\"private_metadata\": " << private_metadata << ", ";
-      ss << "\"client_data\": " << client_data << "}";
-      cout << "Sec-Trust-Token: " << ss.str() << "\r\n";
+      ss << "\"private_metadata\": " << private_metadata << "}";
+      std::string rr = ss.str();
+      size_t len;
+      if (!EVP_EncodedLength(&len, rr.size())) {
+        cerr << "EVP_EncodedLength failed\n";
+        cout << "\r\nInternal error.\r\n";
+        return 1;
+      }
+      std::vector<uint8_t> out;
+      out.resize(len);
+      if (!EVP_EncodeBlock(out.data(), (const uint8_t*)rr.data(), rr.size())) {
+        cerr << "EVP_EncodeBlock failed\n";
+        cout << "\r\nInternal error.\r\n";
+        return 1;
+      }
+      rr = std::string(out.begin(), out.end() - 1);
+
+      cout << "Sec-Trust-Token: " << rr << "\r\n";
       cout << "\r\n";
 
       cout << "Redeeming token.\r\n";
@@ -290,8 +307,8 @@ int main(int argc, char **argv, char **envp) {
       cout << "Duplicate token.\r\n";
     }
   } else if (action == ECHO) {
-    const char *srr = std::getenv("HTTP_SEC_SIGNED_REDEMPTION_RECORD");
-    cout << "\r\n" << srr << "\r\n";
+    const char *rr = std::getenv("HTTP_SEC_REDEMPTION_RECORD");
+    cout << "\r\n" << rr << "\r\n";
   }
 
   sqlite3_close(db);
