@@ -136,6 +136,7 @@ std::string TrustTokenIssuer::GetCommitment(int commitment_id) {
 std::string TrustTokenIssuer::Issue(size_t *out_tokens_issued,
                                     uint32_t public_metadata,
                                     bool private_metadata,
+                                    size_t count,
                                     std::string request) {
   uint8_t *resp = NULL;
   size_t resp_len = 0;
@@ -143,7 +144,7 @@ std::string TrustTokenIssuer::Issue(size_t *out_tokens_issued,
   std::vector<uint8_t> input = DecodeBase64(request);
   if (!TRUST_TOKEN_ISSUER_issue(ctx, &resp, &resp_len, &tokens_issued,
                                 input.data(), input.size(), public_metadata,
-                                private_metadata, batchsize)) {
+                                private_metadata, count)) {
     fprintf(stderr, "TrustTokenIssuer::Issue failed\n");
     return "";
   }

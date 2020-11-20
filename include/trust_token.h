@@ -50,13 +50,13 @@ public:
   // Returns the key commitment for this issuer with an ID of |commitment_id|.
   std::string GetCommitment(int commitment_id);
 
-  // Attempts to issue the tokens requested in the Trust Token header |request|
+  // Attempts to issue up to |count| tokens requested in the Trust Token header |request|
   // using metadata values of |public_metadata| (one of the key IDs added to
   // this issuer) and |private_metadata| (if using a version that supports
   // private metadata). It returns the encoded response that should be included
   // in the Trust Token header.
   std::string Issue(size_t *out_tokens_issued, uint32_t public_metadata,
-                    bool private_metadata, std::string request);
+                    bool private_metadata, size_t count, std::string request);
 
   // Verifies the token provided in the Trust Token header |request| and outputs
   // the value of the metadata in |*out_public| and |*out_private|, along with

@@ -34,3 +34,15 @@ Using Make (does not work on Windows):
     cd build
     cmake ..
     make
+
+## General API
+
+To use this API, the caller should construct a `TrustTokenIssuer` with the appropriate configuration (Currently the issuer version and the max batchsize that is supported).
+
+The object should then be initialized with the keys that this issuer supports using `AddKey` (these keys are generated using `GenerateKey`). The number of keys allowed is based on the version of the protocol being used (6 keys for the `v2_allpublic` and 3 keys for `v2_privatemetadata`).
+
+`GetCommitment` can be used to construct a JSON dictionary that acts as a suitable key commitment for the Trust Token protocol. The `commitment_id` should be an monotonically increasing ID as keys are rotated out and new commitments are generated. The resulting JSON dictionary should be served at some public endpoint and is part of the Issuer registration process for various UAs (browsers).
+
+On receiving a Trust Token issuance request, the issuer should extract the `Sec-Trust-Token` header and pass it into `Issue`, along with the metadata values that should be encoded in the tokens and the maximum number of tokens to issue. The resulting string should be included in the `Sec-Trust-Token` header response.
+
+On receiving a Trust Token redemption request, the issuer should extract the `Sec-Trust-Token` header and pass it into `Redeem`. The outputs should be used to construct a redemption response which should be included in the `Sec-Trust-Token` header. The Trust Token API describes one potential redemption record format.

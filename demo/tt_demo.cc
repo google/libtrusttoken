@@ -244,7 +244,7 @@ int main(int argc, char **argv, char **envp) {
 
     size_t tokens_issued;
     std::string resp = issuer->Issue(&tokens_issued, public_metadata,
-                                     private_metadata, request);
+                                     private_metadata, BATCH_SIZE, request);
     if (resp != "") {
       cout << "Sec-Trust-Token: " << resp << "\r\n";
       cout << "Sec-TT-Count: Issuing " << tokens_issued << " tokens.\r\n";
