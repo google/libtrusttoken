@@ -13,6 +13,7 @@
  * limitations under the License. */
 
 #include <openssl/base64.h>
+#include <openssl/err.h>
 #include <openssl/mem.h>
 #include <trust_token.h>
 
@@ -90,6 +91,7 @@ bool TrustTokenIssuer::GenerateKey(TrustTokenVersion version,
           method, priv_key, &priv_key_len, TRUST_TOKEN_MAX_PRIVATE_KEY_SIZE,
           pub_key, &pub_key_len, TRUST_TOKEN_MAX_PUBLIC_KEY_SIZE, id)) {
     fprintf(stderr, "TrustTokenGenerateKey failed\n");
+    ERR_print_errors_fp(stderr);
     return false;
   }
   out_public->resize(pub_key_len);
@@ -146,6 +148,7 @@ std::string TrustTokenIssuer::Issue(size_t *out_tokens_issued,
                                 input.data(), input.size(), public_metadata,
                                 private_metadata, count)) {
     fprintf(stderr, "TrustTokenIssuer::Issue failed\n");
+    ERR_print_errors_fp(stderr);
     return "";
   }
   std::vector<uint8_t> response;
@@ -170,6 +173,7 @@ bool TrustTokenIssuer::Redeem(uint32_t *out_public, bool *out_private,
                                      &rtoken, &client_data, &client_data_len,
                                      input.data(), input.size())) {
     fprintf(stderr, "TrustTokenIssuer::Redeem failed\n");
+    ERR_print_errors_fp(stderr);
     return false;
   }
 

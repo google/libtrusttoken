@@ -29,7 +29,7 @@
 
 using namespace std;
 
-TrustTokenVersion version = v2_privatemetadata;
+TrustTokenVersion version = v2_allpublic;
 
 bool RunQuery(sqlite3 *db, std::string query,
               int (*cb)(void *, int, char **, char **)) {
@@ -92,7 +92,7 @@ bool LoadKeys(sqlite3 *db, TrustTokenIssuer *issuer) {
   sqlite3_step(stmt);
   int ttKeyCount = sqlite3_column_int(stmt, 0);
   sqlite3_finalize(stmt);
-  while (ttKeyCount < 3) {
+  while (ttKeyCount < 6) {
     if (!AddKey((sqlite3 *)db, ttKeyCount++)) {
       return false;
     }
@@ -214,7 +214,10 @@ int main(int argc, char **argv, char **envp) {
     std::string query = std::string(query_raw);
 
     size_t pos = 0;
-    while ((pos = query.find("&")) != std::string::npos) {
+    while (query.length()) {
+      if ((pos = query.find("&")) == std::string::npos) {
+        pos = query.length();
+      }
       std::string param = query.substr(0, pos);
       size_t eqPos = param.find("=");
       if (eqPos != std::string::npos) {
