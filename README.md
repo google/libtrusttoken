@@ -7,7 +7,7 @@ Project links:
 
   * [General Updates](https://sites.google.com/a/chromium.org/dev/updates/trust-token)
   * [Trust Token API](https://github.com/wicg/trust-token-api)
-
+  * [Design/Implementation Considerations for Issuers](/ISSUERS.md)
 This is not an officially supported Google product.
 
 ## Versions
