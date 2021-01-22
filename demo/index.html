@@ -1,0 +1,156 @@
+<html>
+  <head>
+    <meta http-equiv="origin-trial" content="AqJdO9k1bwBPAPms8acBjJFv8J7FnqbSVThgXL3i9xAC2ehc3iOdH+6ka3ZhD/U1GfynrPXKPTcGT/QsvqXeTw0AAABTeyJvcmlnaW4iOiJodHRwczovL3RydXN0dG9rZW4uZGV2OjQ0MyIsImZlYXR1cmUiOiJUcnVzdFRva2VucyIsImV4cGlyeSI6MTYxMzUwMDYwNn0=">
+    <title>Trust Token Demo</title>
+  </head>
+  <body>
+    <script src="cbor.js" type="text/javascript"></script>
+    <script>
+      var issuer = location.origin;
+      var x = 0;
+      function issueTokens() {
+        var publicValue = document.getElementById('public').value;
+        var privateValue = document.getElementById('private').value;
+        fetch("/tt/i?public=" + publicValue + "&private=" + privateValue, { trustToken: {type: 'token-request'}}).then(function(r) {
+          r.text().then(function (text) {
+            document.getElementById('response').innerHTML = text;
+          });
+        });
+        return false;
+      }
+
+      function redeemToken(refresh) {
+        var policy = "none";
+        if (refresh) {
+          policy = "refresh";
+        }
+        fetch("/tt/r", { trustToken: {type: 'token-redemption', issuer:issuer, refreshPolicy: policy}}).then(function(r) {
+          r.text().then(function (text) {
+            document.getElementById('response').innerHTML = text;
+
+          });
+        }).catch(function(e) {
+          document.getElementById('response').innerText = e.message;
+        });
+        return false;
+      }
+
+      function sendRR(refresh) {
+          fetch("/tt/echo", { trustToken: {type: 'send-redemption-record', issuers:[issuer]}}).then(function(r) {
+          r.text().then(function (text) {
+	      var body = text.split(';')[1].split(':')[1];
+	      document.getElementById('response').innerText = atob(body);
+          });
+        }).catch(function(e) {
+          document.getElementById('response').innerText = e.message;
+        });
+        return false;
+      }
+    </script>
+    <center>
+      <h1>Trust Token Demo Issuer</h1>
+      <div style="width:600px;">
+	<div style="text-align:left;">
+	  You can also use this issuer by making Trust Token requests against "https://trusttoken.dev/tt/(k,i,r)":<br/>
+	  <br/>
+	  Key Commitments:<br/>
+	  <code>
+	    <a href="https://trusttoken.dev/tt/k">https://trusttoken.dev/tt/k</a>
+	  </code>
+	  <br/>
+	  <br/>
+	  Issuance (select a value for the public and private parameters):<br/>
+	  <code>
+	    fetch("https://trusttoken.dev/tt/i?public={0,1,2}&private={0,1}", {trustToken: {type: 'token-request'}}).then(...);
+	  </code>
+	  <br/>
+	  <br/>
+	  Redemption:<br/>
+	  <code>
+	    fetch("https://trusttoken.dev/tt/r", {trustToken: {type: 'token-redemption', issuer: 'https://trusttoken.dev'}}).then(...);
+	  </code>
+	  <br/>
+	  <br/>
+	  Send Redemption Record:<br/>
+	  <code>
+	    fetch(..., {trustToken: {type: 'send-redemption-record', issuers: ['https://trusttoken.dev']}}).then(...);<br/><br/>
+	  </code>
+	</div>
+      </div>
+      <br/>
+      <table>
+        <form onsubmit="return issueTokens();">
+          <tr>
+            <td>
+              <label for="public">Public Metadata:</label>
+            </td>
+            <td>
+              <select id="public" name="public">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+              </select>
+              </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="private">Private Metadata:</label>
+            </td>
+            <td>
+              <select id="private" name="private">
+                <option value="0">0</option>
+                <option value="1">1</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <center>
+                <input type="submit" value="Issue">
+              </center>
+            </td>
+          </tr>
+        </form>
+        <tr></tr>
+        <form onsubmit="return redeemToken(false);">
+          <tr>
+            <td colspan="2">
+              <center>
+                <input type="submit" value="Redeem">
+              </center>
+            </td>
+          </tr>
+        </form>
+        <form onsubmit="return redeemToken(true);">
+          <tr>
+            <td colspan="2">
+              <center>
+                <input type="submit" value="Redeem (Refresh)">
+              </center>
+            </td>
+          </tr>
+        </form>
+        <form onsubmit="return sendRR(true);">
+          <tr>
+            <td colspan="2">
+              <center>
+                <input type="submit" value="Send Redemption Record">
+              </center>
+            </td>
+          </tr>
+        </form>
+      </table>
+      <table>
+        <tr>
+          <td>
+            Response:
+          </td>
+          <td>
+            <div id="response"></div>
+          </td>
+        </tr>
+      </table>
+      <br/>
+    </center>
+  </body>
+</html>
