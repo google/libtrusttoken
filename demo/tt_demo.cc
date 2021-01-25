@@ -29,7 +29,7 @@
 
 using namespace std;
 
-TrustTokenVersion version = v2_allpublic;
+TrustTokenVersion version = v2_privatemetadata;
 
 bool RunQuery(sqlite3 *db, std::string query,
               int (*cb)(void *, int, char **, char **)) {
@@ -92,7 +92,7 @@ bool LoadKeys(sqlite3 *db, TrustTokenIssuer *issuer) {
   sqlite3_step(stmt);
   int ttKeyCount = sqlite3_column_int(stmt, 0);
   sqlite3_finalize(stmt);
-  while (ttKeyCount < 6) {
+  while (ttKeyCount < 3) {
     if (!AddKey((sqlite3 *)db, ttKeyCount++)) {
       return false;
     }
