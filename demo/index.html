@@ -46,6 +46,40 @@
         });
         return false;
       }
+
+      function issueAndroid() {
+        fetch("https://attestation.android.com/att/i", { trustToken: {type: 'token-request'}, mode: 'no-cors'}).then(function(r) {
+          r.text().then(function (text) {
+            document.getElementById('response').innerHTML = text;
+          });
+        });
+        return false;
+      }
+
+      function redeemAndroid() {
+        var policy = "none";
+        fetch("https://attestation.android.com/att/r", { trustToken: {type: 'token-redemption', issuer:"https://attestation.android.com", refreshPolicy: policy}, mode: 'no-cors'}).then(function(r) {
+          r.text().then(function (text) {
+            document.getElementById('response').innerHTML = text;
+
+          });
+        }).catch(function(e) {
+          document.getElementById('response').innerText = e.message;
+        });
+        return false;
+      }
+
+      function sendAndroidRR(refresh) {
+          fetch("/tt/echo", { trustToken: {type: 'send-redemption-record', issuers:["https://attestation.android.com"]}}).then(function(r) {
+          r.text().then(function (text) {
+	      var body = text.split(';')[1].split(':')[1];
+	      document.getElementById('response').innerText = atob(body);
+          });
+        }).catch(function(e) {
+          document.getElementById('response').innerText = e.message;
+        });
+        return false;
+      }
     </script>
     <center>
       <h1>Trust Token Demo Issuer</h1>
@@ -135,6 +169,33 @@
             <td colspan="2">
               <center>
                 <input type="submit" value="Send Redemption Record">
+              </center>
+            </td>
+          </tr>
+        </form>
+        <form onsubmit="return issueAndroid();">
+          <tr>
+            <td colspan="2">
+              <center>
+                <input type="submit" value="Issue Android Token">
+              </center>
+            </td>
+          </tr>
+        </form>
+        <form onsubmit="return redeemAndroid();">
+          <tr>
+            <td colspan="2">
+              <center>
+                <input type="submit" value="Redeem Android Token">
+              </center>
+            </td>
+          </tr>
+        </form>
+        <form onsubmit="return sendAndroidRR(true);">
+          <tr>
+            <td colspan="2">
+              <center>
+                <input type="submit" value="Send Android Redemption Record">
               </center>
             </td>
           </tr>
