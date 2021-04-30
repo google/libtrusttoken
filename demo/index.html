@@ -1,7 +1,33 @@
 <html>
   <head>
     <meta http-equiv="origin-trial" content="AqJdO9k1bwBPAPms8acBjJFv8J7FnqbSVThgXL3i9xAC2ehc3iOdH+6ka3ZhD/U1GfynrPXKPTcGT/QsvqXeTw0AAABTeyJvcmlnaW4iOiJodHRwczovL3RydXN0dG9rZW4uZGV2OjQ0MyIsImZlYXR1cmUiOiJUcnVzdFRva2VucyIsImV4cGlyeSI6MTYxMzUwMDYwNn0=">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trust Token Demo</title>
+    <style>
+      .main {
+          width: 60%;
+      }
+
+      table {
+        border-collapse: separate;
+        border-spacing: 0 10px;
+      }
+      td {
+        text-align: center;
+        padding: 5px;
+      }
+      input {
+          width: 100%;
+      }
+      #response {
+          overflow-wrap: anywhere;
+      }
+      @media screen and (max-width: 800px) {
+          .main {
+              width: 100%;
+          }
+      }
+    </style>
   </head>
   <body>
     <script src="cbor.js" type="text/javascript"></script>
@@ -83,7 +109,7 @@
     </script>
     <center>
       <h1>Trust Token Demo Issuer</h1>
-      <div style="width:600px;">
+      <div class="main">
 	<div style="text-align:left;">
 	  You can also use this issuer by making Trust Token requests against "https://trusttoken.dev/tt/(k,i,r)":<br/>
 	  <br/>
