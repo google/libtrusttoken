@@ -29,7 +29,7 @@
 
 using namespace std;
 
-TrustTokenVersion version = v3_privatemetadata;
+TrustTokenVersion default_version = v3_privatemetadata;
 
 bool RunQuery(sqlite3 *db, std::string query,
               int (*cb)(void *, int, char **, char **)) {
@@ -61,7 +61,7 @@ bool SetupTables(sqlite3 *db) {
 
 bool AddKey(sqlite3 *db, int id) {
   std::vector<uint8_t> pub_key, priv_key;
-  if (!TrustTokenIssuer::GenerateKey(version, &pub_key, &priv_key, id))
+  if (!TrustTokenIssuer::GenerateKey(default_version, &pub_key, &priv_key, id))
     return false;
 
   sqlite3_stmt *stmt = NULL;
@@ -167,6 +167,14 @@ int main(int argc, char **argv, char **envp) {
     return 1;
   }
 
+  TrustTokenVersion version = v2_privatemetadata;
+  const char *version_raw = std::getenv("HTTP_SEC_TRUST_TOKEN_VERSION");
+  if (version_raw != NULL) {
+    string version_header = std::string(version_raw);
+    if (version_header.find("V3") != std::string::npos) {
+      version = v3_privatemetadata;
+    }
+  }
   TrustTokenIssuer *issuer = new TrustTokenIssuer(version, BATCH_SIZE);
   if (!LoadKeys(db, issuer)) {
     return 1;
@@ -179,6 +187,8 @@ int main(int argc, char **argv, char **envp) {
     return 1;
   }
   string path = std::string(path_raw);
+
+
   if (path.find("/k") != std::string::npos) {
     action = KEYS;
   } else if (path.find("/i") != std::string::npos) {
@@ -194,8 +204,16 @@ int main(int argc, char **argv, char **envp) {
 
   cout << "Content-type:text/plain\r\n";
   if (action == KEYS) {
+    TrustTokenIssuer *v2_issuer = new TrustTokenIssuer(v2_privatemetadata, BATCH_SIZE);
+    TrustTokenIssuer *v3_issuer = new TrustTokenIssuer(v3_privatemetadata, BATCH_SIZE);
+    if (!LoadKeys(db, v2_issuer) || !LoadKeys(db, v3_issuer)) {
+      return 1;
+    }
+    std::string v2Commitment = v2_issuer->GetCommitment(1);
+    std::string v3Commitment = v3_issuer->GetCommitment(1);
     cout << "\r\n";
-    cout << issuer->GetCommitment(1) << "\r\n";
+    cout << v2Commitment.substr(0, v2Commitment.size() - 1) << ", ";
+    cout << v3Commitment.substr(1, v3Commitment.size()) << "\r\n";
   } else if (action == ISSUE) {
     const char *request = std::getenv("HTTP_SEC_TRUST_TOKEN");
     if (request == NULL) {
