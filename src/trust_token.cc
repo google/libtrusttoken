@@ -60,8 +60,10 @@ static std::string EncodeBase64(const std::vector<uint8_t> in) {
 static const TRUST_TOKEN_METHOD *GetMethod(TrustTokenVersion version) {
   switch (version) {
     case v2_allpublic:
+    case v3_allpublic:
       return TRUST_TOKEN_experiment_v2_voprf();
     case v2_privatemetadata:
+    case v3_privatemetadata:
       return TRUST_TOKEN_experiment_v2_pmb();
   }
   fprintf(stderr, "Unknown Trust Token Version\n");
@@ -74,6 +76,10 @@ static std::string GetProtocolString(TrustTokenVersion version) {
       return "TrustTokenV2VOPRF";
     case v2_privatemetadata:
       return "TrustTokenV2PMB";
+    case v3_allpublic:
+      return "TrustTokenV3VOPRF";
+    case v3_privatemetadata:
+      return "TrustTokenV3PMB";
   }
   fprintf(stderr, "Unknown Trust Token Version\n");
   return "";
@@ -123,15 +129,35 @@ bool TrustTokenIssuer::AddKey(std::vector<uint8_t> pub_key,
 }
 
 std::string TrustTokenIssuer::GetCommitment(int commitment_id) {
+  bool v3Format = (version == v3_allpublic || version == v3_privatemetadata);
+
   std::ostringstream ss;
+  if (v3Format) {
+    ss << "{\"" << GetProtocolString(version) << "\": ";
+  }
   ss << "{\"protocol_version\": \"" << GetProtocolString(version) << "\", ";
   ss << "\"batchsize\": " << batchsize << ", ";
+  if (v3Format) {
+    ss << "\"keys\": {";
+  }
+  bool firstKey = true;
   for (auto key : keys) {
+    if (!firstKey) {
+      ss << ", ";
+    }
+    firstKey = false;
     std::string pub_b64 = EncodeBase64(std::get<0>(key));
     ss << "\"" << std::get<2>(key) << "\": {\"Y\": \"" << pub_b64 << "\", ";
-    ss << "\"expiry\": \"" << std::get<3>(key) << "\"}, ";
+    ss << "\"expiry\": \"" << std::get<3>(key) << "\"}";
   }
+  if (v3Format) {
+    ss << "}";
+  }
+  ss << ", ";
   ss << "\"id\": " << commitment_id << "}";
+  if (v3Format) {
+    ss << "}";
+  }
   return ss.str();
 }
 

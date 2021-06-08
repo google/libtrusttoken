@@ -26,6 +26,8 @@
 typedef enum trust_token_version {
   v2_allpublic,
   v2_privatemetadata,
+  v3_allpublic,
+  v3_privatemetadata,
 } TrustTokenVersion;
 
 

@@ -29,7 +29,7 @@
 
 using namespace std;
 
-TrustTokenVersion version = v2_privatemetadata;
+TrustTokenVersion version = v3_privatemetadata;
 
 bool RunQuery(sqlite3 *db, std::string query,
               int (*cb)(void *, int, char **, char **)) {
