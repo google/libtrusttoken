@@ -154,7 +154,7 @@ bool CheckToken(sqlite3 *db, bool *out_found, std::vector<uint8_t> token) {
   return true;
 }
 
-enum TTAction { KEYS, ISSUE, REDEEM, ECHO };
+enum TTAction { KEYS, KEYS_V2, ISSUE, REDEEM, ECHO };
 
 int main(int argc, char **argv, char **envp) {
   sqlite3 *db;
@@ -191,6 +191,8 @@ int main(int argc, char **argv, char **envp) {
 
   if (path.find("/k") != std::string::npos) {
     action = KEYS;
+  } else if (path.find("/v2k") != std::string::npos) {
+    action = KEYS_V2;
   } else if (path.find("/i") != std::string::npos) {
     action = ISSUE;
   } else if (path.find("/r") != std::string::npos) {
@@ -214,6 +216,14 @@ int main(int argc, char **argv, char **envp) {
     cout << "\r\n";
     cout << v2Commitment.substr(0, v2Commitment.size() - 1) << ", ";
     cout << v3Commitment.substr(1, v3Commitment.size()) << "\r\n";
+  } else if (action == KEYS_V2) {
+    TrustTokenIssuer *v2_issuer = new TrustTokenIssuer(v2_privatemetadata, BATCH_SIZE);
+    if (!LoadKeys(db, v2_issuer)) {
+      return 1;
+    }
+    std::string v2Commitment = v2_issuer->GetCommitment(1);
+    cout << "\r\n";
+    cout << v2Commitment << "\r\n";
   } else if (action == ISSUE) {
     const char *request = std::getenv("HTTP_SEC_TRUST_TOKEN");
     if (request == NULL) {
