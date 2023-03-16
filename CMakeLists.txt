@@ -30,21 +30,21 @@ ExternalProject_Add(boringssl
 )
 
 add_library(
-  trusttoken
+  privatestatetoken
 
-  src/trust_token.cc
+  src/private_state_token.cc
 )
 
 include_directories(${BORINGSSL_INSTALL_DIR}/include)
 include_directories(include)
 link_directories(${BORINGSSL_INSTALL_DIR}/crypto)
 
-add_dependencies(trusttoken boringssl)
-target_link_libraries(trusttoken crypto)
+add_dependencies(privatestatetoken boringssl)
+target_link_libraries(privatestatetoken crypto)
 
 add_executable(
   tt_demo
   demo/tt_demo.cc
 )
-add_dependencies(tt_demo trusttoken boringssl)
-target_link_libraries(tt_demo trusttoken pthread sqlite3)
+add_dependencies(tt_demo privatestatetoken boringssl)
+target_link_libraries(tt_demo privatestatetoken pthread sqlite3)

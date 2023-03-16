@@ -50,4 +50,4 @@ time or different website.
 The [Trust Token API](https://github.com/wicg/trust-token-api) explainer includes
 one potential structure for the Redemption Record. Though depending on the data
 included in the Redemption Record, the issuer may want to base64 encode it to
-ensure it is transported in the `Sec-Trust-Token` header correctly.
+ensure it is transported in the `Sec-Private-State-Token` header correctly.

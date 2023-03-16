@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 
-#ifndef TRUST_TOKEN_H
-#define TRUST_TOKEN_H
+#ifndef PRIVATE_STATE_TOKEN_H
+#define PRIVATE_STATE_TOKEN_H
 
 #include <openssl/base.h>
 #include <openssl/trust_token.h>
@@ -21,25 +21,25 @@
 #include <vector>
 
 
-// TrustTokenVersion represents what version of Trust Token to attempt with this
+// PrivateStateTokenVersion represents what version of Private State Token to attempt with this
 // issuer.
-typedef enum trust_token_version {
+typedef enum private_state_token_version {
   v2_allpublic,
   v2_privatemetadata,
   v3_allpublic,
   v3_privatemetadata,
-} TrustTokenVersion;
+} PrivateStateTokenVersion;
 
 
 
-class TrustTokenIssuer {
+class PrivateStateTokenIssuer {
 public:
-  TrustTokenIssuer(TrustTokenVersion issuer_version, size_t max_batchsize);
-  ~TrustTokenIssuer();
+  PrivateStateTokenIssuer(PrivateStateTokenVersion issuer_version, size_t max_batchsize);
+  ~PrivateStateTokenIssuer();
 
-  // |GenerateKey| generates a new keypair for the Trust Token version |version|
+  // |GenerateKey| generates a new keypair for the Private State Token version |version|
   // with the ID |id|. It returns true on success and false on failure.
-  static bool GenerateKey(TrustTokenVersion version,
+  static bool GenerateKey(PrivateStateTokenVersion version,
                           std::vector<uint8_t> *out_public,
                           std::vector<uint8_t> *out_private, uint32_t id);
 
@@ -52,15 +52,15 @@ public:
   // Returns the key commitment for this issuer with an ID of |commitment_id|.
   std::string GetCommitment(int commitment_id);
 
-  // Attempts to issue up to |count| tokens requested in the Trust Token header |request|
+  // Attempts to issue up to |count| tokens requested in the Private State Token header |request|
   // using metadata values of |public_metadata| (one of the key IDs added to
   // this issuer) and |private_metadata| (if using a version that supports
   // private metadata). It returns the encoded response that should be included
-  // in the Trust Token header.
+  // in the Private State Token header.
   std::string Issue(size_t *out_tokens_issued, uint32_t public_metadata,
                     bool private_metadata, size_t count, std::string request);
 
-  // Verifies the token provided in the Trust Token header |request| and outputs
+  // Verifies the token provided in the Private State Token header |request| and outputs
   // the value of the metadata in |*out_public| and |*out_private|, along with
   // the raw token in |*out_token| (which should be used to detect
   // double-spending of the same token) and the client data provided in the
@@ -72,7 +72,7 @@ public:
               std::string request);
 
 private:
-  TrustTokenVersion version;
+  PrivateStateTokenVersion version;
   TRUST_TOKEN_ISSUER *ctx;
   size_t batchsize;
   std::vector<std::tuple<std::vector<uint8_t>, std::vector<uint8_t>, uint32_t,
@@ -80,4 +80,4 @@ private:
       keys;
 };
 
-#endif  // TRUST_TOKEN_H
+#endif  // PRIVATE_STATE_TOKEN_H

@@ -16,7 +16,7 @@
 
 #include <openssl/base64.h>
 
-#include <trust_token.h>
+#include <private_state_token.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -29,7 +29,7 @@
 
 using namespace std;
 
-TrustTokenVersion default_version = v3_privatemetadata;
+PrivateStateTokenVersion default_version = v3_privatemetadata;
 
 bool RunQuery(sqlite3 *db, std::string query,
               int (*cb)(void *, int, char **, char **)) {
@@ -61,7 +61,7 @@ bool SetupTables(sqlite3 *db) {
 
 bool AddKey(sqlite3 *db, int id) {
   std::vector<uint8_t> pub_key, priv_key;
-  if (!TrustTokenIssuer::GenerateKey(default_version, &pub_key, &priv_key, id))
+  if (!PrivateStateTokenIssuer::GenerateKey(default_version, &pub_key, &priv_key, id))
     return false;
 
   sqlite3_stmt *stmt = NULL;
@@ -81,7 +81,7 @@ bool AddKey(sqlite3 *db, int id) {
   return true;
 }
 
-bool LoadKeys(sqlite3 *db, TrustTokenIssuer *issuer) {
+bool LoadKeys(sqlite3 *db, PrivateStateTokenIssuer *issuer) {
   sqlite3_stmt *stmt = NULL;
   int ret = sqlite3_prepare(db, "SELECT COUNT(*) from keys WHERE srrKey = 0;",
                             -1, &stmt, NULL);
@@ -167,15 +167,15 @@ int main(int argc, char **argv, char **envp) {
     return 1;
   }
 
-  TrustTokenVersion version = v2_privatemetadata;
-  const char *version_raw = std::getenv("HTTP_SEC_TRUST_TOKEN_VERSION");
+  PrivateStateTokenVersion version = v2_privatemetadata;
+  const char *version_raw = std::getenv("HTTP_SEC_PRIVATE_STATE_TOKEN_VERSION");
   if (version_raw != NULL) {
     string version_header = std::string(version_raw);
     if (version_header.find("V3") != std::string::npos) {
       version = v3_privatemetadata;
     }
   }
-  TrustTokenIssuer *issuer = new TrustTokenIssuer(version, BATCH_SIZE);
+  PrivateStateTokenIssuer *issuer = new PrivateStateTokenIssuer(version, BATCH_SIZE);
   if (!LoadKeys(db, issuer)) {
     return 1;
   }
@@ -206,8 +206,8 @@ int main(int argc, char **argv, char **envp) {
 
   cout << "Content-type:text/plain\r\n";
   if (action == KEYS) {
-    TrustTokenIssuer *v2_issuer = new TrustTokenIssuer(v2_privatemetadata, BATCH_SIZE);
-    TrustTokenIssuer *v3_issuer = new TrustTokenIssuer(v3_privatemetadata, BATCH_SIZE);
+    PrivateStateTokenIssuer *v2_issuer = new PrivateStateTokenIssuer(v2_privatemetadata, BATCH_SIZE);
+    PrivateStateTokenIssuer *v3_issuer = new PrivateStateTokenIssuer(v3_privatemetadata, BATCH_SIZE);
     if (!LoadKeys(db, v2_issuer) || !LoadKeys(db, v3_issuer)) {
       return 1;
     }
@@ -217,7 +217,7 @@ int main(int argc, char **argv, char **envp) {
     cout << v2Commitment.substr(0, v2Commitment.size() - 1) << ", ";
     cout << v3Commitment.substr(1, v3Commitment.size()) << "\r\n";
   } else if (action == KEYS_V2) {
-    TrustTokenIssuer *v2_issuer = new TrustTokenIssuer(v2_privatemetadata, BATCH_SIZE);
+    PrivateStateTokenIssuer *v2_issuer = new PrivateStateTokenIssuer(v2_privatemetadata, BATCH_SIZE);
     if (!LoadKeys(db, v2_issuer)) {
       return 1;
     }
@@ -225,9 +225,9 @@ int main(int argc, char **argv, char **envp) {
     cout << "\r\n";
     cout << v2Commitment << "\r\n";
   } else if (action == ISSUE) {
-    const char *request = std::getenv("HTTP_SEC_TRUST_TOKEN");
+    const char *request = std::getenv("HTTP_SEC_PRIVATE_STATE_TOKEN");
     if (request == NULL) {
-      cout << "\r\nSec-Trust-Token header missing.\r\n";
+      cout << "\r\nSec-Private-State-Token header missing.\r\n";
       return 0;
     }
 
@@ -277,17 +277,17 @@ int main(int argc, char **argv, char **envp) {
     std::string resp = issuer->Issue(&tokens_issued, public_metadata,
                                      private_metadata, BATCH_SIZE, request);
     if (resp != "") {
-      cout << "Sec-Trust-Token: " << resp << "\r\n";
-      cout << "Sec-TT-Count: Issuing " << tokens_issued << " tokens.\r\n";
+      cout << "Sec-Private-State-Token: " << resp << "\r\n";
+      cout << "Sec-PST-Count: Issuing " << tokens_issued << " tokens.\r\n";
       cout << "\r\n";
       cout << "Issuing " << tokens_issued << " tokens.\r\n";
     } else {
       cout << "\r\n\r\nError issuing tokens.\r\n";
     }
   } else if (action == REDEEM) {
-    const char *request = std::getenv("HTTP_SEC_TRUST_TOKEN");
+    const char *request = std::getenv("HTTP_SEC_PRIVATE_STATE_TOKEN");
     if (request == NULL) {
-      cout << "\r\nSec-Trust-Token header missing.\r\n";
+      cout << "\r\nSec-Private-State-Token header missing.\r\n";
       return 0;
     }
 
@@ -304,7 +304,7 @@ int main(int argc, char **argv, char **envp) {
     // Make response.
     bool found = false;
     if (!CheckToken(db, &found, token)) {
-      cout << "\r\nBad Trust Token.\r\n";
+      cout << "\r\nBad Private State Token.\r\n";
       return 1;
     }
 
@@ -328,7 +328,7 @@ int main(int argc, char **argv, char **envp) {
       }
       rr = std::string(out.begin(), out.end() - 1);
 
-      cout << "Sec-Trust-Token: " << rr << "\r\n";
+      cout << "Sec-Private-State-Token: " << rr << "\r\n";
       cout << "\r\n";
 
       cout << "Redeeming token.\r\n";

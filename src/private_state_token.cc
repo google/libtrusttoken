@@ -15,7 +15,7 @@
 #include <openssl/base64.h>
 #include <openssl/err.h>
 #include <openssl/mem.h>
-#include <trust_token.h>
+#include <private_state_token.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -57,7 +57,7 @@ static std::string EncodeBase64(const std::vector<uint8_t> in) {
   return std::string(out.begin(), out.end() - 1);
 }
 
-static const TRUST_TOKEN_METHOD *GetMethod(TrustTokenVersion version) {
+static const TRUST_TOKEN_METHOD *GetMethod(PrivateStateTokenVersion version) {
   switch (version) {
     case v2_allpublic:
     case v3_allpublic:
@@ -66,11 +66,11 @@ static const TRUST_TOKEN_METHOD *GetMethod(TrustTokenVersion version) {
     case v3_privatemetadata:
       return TRUST_TOKEN_experiment_v2_pmb();
   }
-  fprintf(stderr, "Unknown Trust Token Version\n");
+  fprintf(stderr, "Unknown Private State Token Version\n");
   return nullptr;
 }
 
-static std::string GetProtocolString(TrustTokenVersion version) {
+static std::string GetProtocolString(PrivateStateTokenVersion version) {
   switch (version) {
     case v2_allpublic:
       return "TrustTokenV2VOPRF";
@@ -81,11 +81,11 @@ static std::string GetProtocolString(TrustTokenVersion version) {
     case v3_privatemetadata:
       return "TrustTokenV3PMB";
   }
-  fprintf(stderr, "Unknown Trust Token Version\n");
+  fprintf(stderr, "Unknown Private State Token Version\n");
   return "";
 }
 
-bool TrustTokenIssuer::GenerateKey(TrustTokenVersion version,
+bool PrivateStateTokenIssuer::GenerateKey(PrivateStateTokenVersion version,
                                    std::vector<uint8_t> *out_public,
                                    std::vector<uint8_t> *out_private,
                                    uint32_t id) {
@@ -107,7 +107,7 @@ bool TrustTokenIssuer::GenerateKey(TrustTokenVersion version,
   return true;
 }
 
-TrustTokenIssuer::TrustTokenIssuer(TrustTokenVersion issuer_version,
+PrivateStateTokenIssuer::PrivateStateTokenIssuer(PrivateStateTokenVersion issuer_version,
                                    size_t max_batchsize) {
   version = issuer_version;
   const TRUST_TOKEN_METHOD *method = GetMethod(version);
@@ -115,20 +115,20 @@ TrustTokenIssuer::TrustTokenIssuer(TrustTokenVersion issuer_version,
   batchsize = max_batchsize;
 }
 
-TrustTokenIssuer::~TrustTokenIssuer() { TRUST_TOKEN_ISSUER_free(ctx); }
+PrivateStateTokenIssuer::~PrivateStateTokenIssuer() { TRUST_TOKEN_ISSUER_free(ctx); }
 
-bool TrustTokenIssuer::AddKey(std::vector<uint8_t> pub_key,
+bool PrivateStateTokenIssuer::AddKey(std::vector<uint8_t> pub_key,
                               std::vector<uint8_t> priv_key, uint32_t id,
                               uint64_t expiry) {
   if (!TRUST_TOKEN_ISSUER_add_key(ctx, priv_key.data(), priv_key.size())) {
-    fprintf(stderr, "TrustTokenIssuer::AddKey failed\n");
+    fprintf(stderr, "PrivateStateTokenIssuer::AddKey failed\n");
     return false;
   }
   keys.push_back(std::make_tuple(pub_key, priv_key, id, expiry));
   return true;
 }
 
-std::string TrustTokenIssuer::GetCommitment(int commitment_id) {
+std::string PrivateStateTokenIssuer::GetCommitment(int commitment_id) {
   bool v3Format = (version == v3_allpublic || version == v3_privatemetadata);
 
   std::ostringstream ss;
@@ -161,7 +161,7 @@ std::string TrustTokenIssuer::GetCommitment(int commitment_id) {
   return ss.str();
 }
 
-std::string TrustTokenIssuer::Issue(size_t *out_tokens_issued,
+std::string PrivateStateTokenIssuer::Issue(size_t *out_tokens_issued,
                                     uint32_t public_metadata,
                                     bool private_metadata,
                                     size_t count,
@@ -173,7 +173,7 @@ std::string TrustTokenIssuer::Issue(size_t *out_tokens_issued,
   if (!TRUST_TOKEN_ISSUER_issue(ctx, &resp, &resp_len, &tokens_issued,
                                 input.data(), input.size(), public_metadata,
                                 private_metadata, count)) {
-    fprintf(stderr, "TrustTokenIssuer::Issue failed\n");
+    fprintf(stderr, "PrivateStateTokenIssuer::Issue failed\n");
     ERR_print_errors_fp(stderr);
     return "";
   }
@@ -185,7 +185,7 @@ std::string TrustTokenIssuer::Issue(size_t *out_tokens_issued,
   return EncodeBase64(response);
 }
 
-bool TrustTokenIssuer::Redeem(uint32_t *out_public, bool *out_private,
+bool PrivateStateTokenIssuer::Redeem(uint32_t *out_public, bool *out_private,
                               std::vector<uint8_t> *out_token,
                               std::string *out_client_data,
                               std::string request) {
@@ -198,7 +198,7 @@ bool TrustTokenIssuer::Redeem(uint32_t *out_public, bool *out_private,
   if (!TRUST_TOKEN_ISSUER_redeem_raw(ctx, &public_metadata, &private_metadata,
                                      &rtoken, &client_data, &client_data_len,
                                      input.data(), input.size())) {
-    fprintf(stderr, "TrustTokenIssuer::Redeem failed\n");
+    fprintf(stderr, "PrivateStateTokenIssuer::Redeem failed\n");
     ERR_print_errors_fp(stderr);
     return false;
   }

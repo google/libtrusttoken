@@ -2,7 +2,7 @@
   <head>
     <meta http-equiv="origin-trial" content="AqJdO9k1bwBPAPms8acBjJFv8J7FnqbSVThgXL3i9xAC2ehc3iOdH+6ka3ZhD/U1GfynrPXKPTcGT/QsvqXeTw0AAABTeyJvcmlnaW4iOiJodHRwczovL3RydXN0dG9rZW4uZGV2OjQ0MyIsImZlYXR1cmUiOiJUcnVzdFRva2VucyIsImV4cGlyeSI6MTYxMzUwMDYwNn0=">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trust Token Demo</title>
+    <title>Private State Token Demo</title>
     <style>
       .main {
           width: 60%;
@@ -37,7 +37,7 @@
       function issueTokens() {
         var publicValue = document.getElementById('public').value;
         var privateValue = document.getElementById('private').value;
-        fetch("/tt/i?public=" + publicValue + "&private=" + privateValue, { trustToken: {type: 'token-request'}}).then(function(r) {
+        fetch("/tt/i?public=" + publicValue + "&private=" + privateValue, { privateToken: {type: 'private-state-token', version: 1, operation: 'token-request', issuer: issuer}}).then(function(r) {
           r.text().then(function (text) {
             document.getElementById('response').innerHTML = text;
           });
@@ -50,7 +50,7 @@
         if (refresh) {
           policy = "refresh";
         }
-        fetch("/tt/r", { trustToken: {type: 'token-redemption', issuer:issuer, refreshPolicy: policy}}).then(function(r) {
+        fetch("/tt/r", { privateToken: {type: 'private-state-token', version: 1, operation: 'token-redemption', issuer: issuer, refreshPolicy: policy}}).then(function(r) {
           r.text().then(function (text) {
             document.getElementById('response').innerHTML = text;
 
@@ -62,41 +62,7 @@
       }
 
       function sendRR(refresh) {
-          fetch("/tt/echo", { trustToken: {type: 'send-redemption-record', issuers:[issuer]}}).then(function(r) {
-          r.text().then(function (text) {
-	      var body = text.split(';')[1].split(':')[1];
-	      document.getElementById('response').innerText = atob(body);
-          });
-        }).catch(function(e) {
-          document.getElementById('response').innerText = e.message;
-        });
-        return false;
-      }
-
-      function issueAndroid() {
-        fetch("https://attestation.android.com/att/i", { trustToken: {type: 'token-request'}, mode: 'no-cors'}).then(function(r) {
-          r.text().then(function (text) {
-            document.getElementById('response').innerHTML = text;
-          });
-        });
-        return false;
-      }
-
-      function redeemAndroid() {
-        var policy = "none";
-        fetch("https://attestation.android.com/att/r", { trustToken: {type: 'token-redemption', issuer:"https://attestation.android.com", refreshPolicy: policy}, mode: 'no-cors'}).then(function(r) {
-          r.text().then(function (text) {
-            document.getElementById('response').innerHTML = text;
-
-          });
-        }).catch(function(e) {
-          document.getElementById('response').innerText = e.message;
-        });
-        return false;
-      }
-
-      function sendAndroidRR(refresh) {
-          fetch("/tt/echo", { trustToken: {type: 'send-redemption-record', issuers:["https://attestation.android.com"]}}).then(function(r) {
+          fetch("/tt/echo", { privateToken: {type: 'private-state-token', version: 1, operation: 'send-redemption-record', issuers:[issuer]}}).then(function(r) {
           r.text().then(function (text) {
 	      var body = text.split(';')[1].split(':')[1];
 	      document.getElementById('response').innerText = atob(body);
@@ -108,10 +74,10 @@
       }
     </script>
     <center>
-      <h1>Trust Token Demo Issuer</h1>
+      <h1>Private State Token Demo Issuer</h1>
       <div class="main">
 	<div style="text-align:left;">
-	  You can also use this issuer by making Trust Token requests against "https://trusttoken.dev/tt/(k,i,r)":<br/>
+	  You can also use this issuer by making Private State Token requests against "https://trusttoken.dev/tt/(k,i,r)":<br/>
 	  <br/>
 	  Key Commitments:<br/>
 	  <code>
@@ -121,19 +87,19 @@
 	  <br/>
 	  Issuance (select a value for the public and private parameters):<br/>
 	  <code>
-	    fetch("https://trusttoken.dev/tt/i?public={0,1,2}&private={0,1}", {trustToken: {type: 'token-request'}}).then(...);
+	    fetch("https://trusttoken.dev/tt/i?public={0,1,2}&private={0,1}", {privateToken: {...}}).then(...);
 	  </code>
 	  <br/>
 	  <br/>
 	  Redemption:<br/>
 	  <code>
-	    fetch("https://trusttoken.dev/tt/r", {trustToken: {type: 'token-redemption', issuer: 'https://trusttoken.dev'}}).then(...);
+	    fetch("https://trusttoken.dev/tt/r", {privateToken: {...}}).then(...);
 	  </code>
 	  <br/>
 	  <br/>
 	  Send Redemption Record:<br/>
 	  <code>
-	    fetch(..., {trustToken: {type: 'send-redemption-record', issuers: ['https://trusttoken.dev']}}).then(...);<br/><br/>
+	    fetch(..., {privateToken: {...}}).then(...);<br/><br/>
 	  </code>
 	</div>
       </div>
@@ -195,33 +161,6 @@
             <td colspan="2">
               <center>
                 <input type="submit" value="Send Redemption Record">
-              </center>
-            </td>
-          </tr>
-        </form>
-        <form onsubmit="return issueAndroid();">
-          <tr>
-            <td colspan="2">
-              <center>
-                <input type="submit" value="Issue Android Token">
-              </center>
-            </td>
-          </tr>
-        </form>
-        <form onsubmit="return redeemAndroid();">
-          <tr>
-            <td colspan="2">
-              <center>
-                <input type="submit" value="Redeem Android Token">
-              </center>
-            </td>
-          </tr>
-        </form>
-        <form onsubmit="return sendAndroidRR(true);">
-          <tr>
-            <td colspan="2">
-              <center>
-                <input type="submit" value="Send Android Redemption Record">
               </center>
             </td>
           </tr>
