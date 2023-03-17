@@ -168,7 +168,7 @@ int main(int argc, char **argv, char **envp) {
   }
 
   PrivateStateTokenVersion version = v2_privatemetadata;
-  const char *version_raw = std::getenv("HTTP_SEC_PRIVATE_STATE_TOKEN_VERSION");
+  const char *version_raw = std::getenv("HTTP_SEC_PRIVATE_STATE_TOKEN_CRYPTO_VERSION");
   if (version_raw != NULL) {
     string version_header = std::string(version_raw);
     if (version_header.find("V3") != std::string::npos) {

@@ -73,13 +73,13 @@ static const TRUST_TOKEN_METHOD *GetMethod(PrivateStateTokenVersion version) {
 static std::string GetProtocolString(PrivateStateTokenVersion version) {
   switch (version) {
     case v2_allpublic:
-      return "TrustTokenV2VOPRF";
+      return "PrivateStateTokenV2VOPRF";
     case v2_privatemetadata:
-      return "TrustTokenV2PMB";
+      return "PrivateStateTokenV2PMB";
     case v3_allpublic:
-      return "TrustTokenV3VOPRF";
+      return "PrivateStateTokenV3VOPRF";
     case v3_privatemetadata:
-      return "TrustTokenV3PMB";
+      return "PrivateStateTokenV3PMB";
   }
   fprintf(stderr, "Unknown Private State Token Version\n");
   return "";
