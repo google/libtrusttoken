@@ -65,7 +65,7 @@
           fetch("/tt/echo", { privateToken: {type: 'private-state-token', version: 1, operation: 'send-redemption-record', issuers:[issuer]}}).then(function(r) {
           r.text().then(function (text) {
 	      var body = text.split(';')[1].split(':')[1];
-	      document.getElementById('response').innerText = atob(body);
+	      document.getElementById('response').innerText = body;
           });
         }).catch(function(e) {
           document.getElementById('response').innerText = e.message;
