@@ -115,7 +115,7 @@ bool LoadKeys(sqlite3 *db, PrivateStateTokenIssuer *issuer) {
     pub_vec.assign(pub, pub + pubLen);
     std::vector<uint8_t> priv_vec;
     priv_vec.assign(priv, priv + privLen);
-    if (!issuer->AddKey(pub_vec, priv_vec, id, 1640908800000000)) {
+    if (!issuer->AddKey(pub_vec, priv_vec, id, 1767139200000000)) {
       return false;
     }
   }
