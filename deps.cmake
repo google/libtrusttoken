@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(BORINGSSL_HASH 07827156c9ef185d3777e0f72e1afc44fa9cc2e0)
+set(BORINGSSL_HASH 5b32e81407cd044e76c995eb99343dca954a17b8)

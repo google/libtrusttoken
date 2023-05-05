@@ -59,12 +59,8 @@ static std::string EncodeBase64(const std::vector<uint8_t> in) {
 
 static const TRUST_TOKEN_METHOD *GetMethod(PrivateStateTokenVersion version) {
   switch (version) {
-    case v2_allpublic:
-    case v3_allpublic:
-      return TRUST_TOKEN_experiment_v2_voprf();
-    case v2_privatemetadata:
-    case v3_privatemetadata:
-      return TRUST_TOKEN_experiment_v2_pmb();
+    case v1_allpublic:
+      return TRUST_TOKEN_pst_v1_voprf();
   }
   fprintf(stderr, "Unknown Private State Token Version\n");
   return nullptr;
@@ -72,14 +68,8 @@ static const TRUST_TOKEN_METHOD *GetMethod(PrivateStateTokenVersion version) {
 
 static std::string GetProtocolString(PrivateStateTokenVersion version) {
   switch (version) {
-    case v2_allpublic:
-      return "PrivateStateTokenV2VOPRF";
-    case v2_privatemetadata:
-      return "PrivateStateTokenV2PMB";
-    case v3_allpublic:
-      return "PrivateStateTokenV3VOPRF";
-    case v3_privatemetadata:
-      return "PrivateStateTokenV3PMB";
+    case v1_allpublic:
+      return "PrivateStateTokenV1VOPRF";
   }
   fprintf(stderr, "Unknown Private State Token Version\n");
   return "";
@@ -129,17 +119,11 @@ bool PrivateStateTokenIssuer::AddKey(std::vector<uint8_t> pub_key,
 }
 
 std::string PrivateStateTokenIssuer::GetCommitment(int commitment_id) {
-  bool v3Format = (version == v3_allpublic || version == v3_privatemetadata);
-
   std::ostringstream ss;
-  if (v3Format) {
-    ss << "{\"" << GetProtocolString(version) << "\": ";
-  }
+  ss << "{\"" << GetProtocolString(version) << "\": ";
   ss << "{\"protocol_version\": \"" << GetProtocolString(version) << "\", ";
   ss << "\"batchsize\": " << batchsize << ", ";
-  if (v3Format) {
-    ss << "\"keys\": {";
-  }
+  ss << "\"keys\": {";
   bool firstKey = true;
   for (auto key : keys) {
     if (!firstKey) {
@@ -150,20 +134,15 @@ std::string PrivateStateTokenIssuer::GetCommitment(int commitment_id) {
     ss << "\"" << std::get<2>(key) << "\": {\"Y\": \"" << pub_b64 << "\", ";
     ss << "\"expiry\": \"" << std::get<3>(key) << "\"}";
   }
-  if (v3Format) {
-    ss << "}";
-  }
+  ss << "}";
   ss << ", ";
   ss << "\"id\": " << commitment_id << "}";
-  if (v3Format) {
-    ss << "}";
-  }
+  ss << "}";
   return ss.str();
 }
 
 std::string PrivateStateTokenIssuer::Issue(size_t *out_tokens_issued,
                                     uint32_t public_metadata,
-                                    bool private_metadata,
                                     size_t count,
                                     std::string request) {
   uint8_t *resp = NULL;
@@ -172,7 +151,7 @@ std::string PrivateStateTokenIssuer::Issue(size_t *out_tokens_issued,
   std::vector<uint8_t> input = DecodeBase64(request);
   if (!TRUST_TOKEN_ISSUER_issue(ctx, &resp, &resp_len, &tokens_issued,
                                 input.data(), input.size(), public_metadata,
-                                private_metadata, count)) {
+                                0, count)) {
     fprintf(stderr, "PrivateStateTokenIssuer::Issue failed\n");
     ERR_print_errors_fp(stderr);
     return "";
@@ -185,7 +164,7 @@ std::string PrivateStateTokenIssuer::Issue(size_t *out_tokens_issued,
   return EncodeBase64(response);
 }
 
-bool PrivateStateTokenIssuer::Redeem(uint32_t *out_public, bool *out_private,
+bool PrivateStateTokenIssuer::Redeem(uint32_t *out_public,
                               std::vector<uint8_t> *out_token,
                               std::string *out_client_data,
                               std::string request) {
@@ -204,7 +183,6 @@ bool PrivateStateTokenIssuer::Redeem(uint32_t *out_public, bool *out_private,
   }
 
   *out_public = public_metadata;
-  *out_private = (private_metadata == 0 ? false : true);
   out_token->assign(rtoken->data, rtoken->data + rtoken->len);
   TRUST_TOKEN_free(rtoken);
   out_client_data->assign((char *)client_data, client_data_len);

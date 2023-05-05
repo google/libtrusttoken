@@ -1,6 +1,5 @@
 <html>
   <head>
-    <meta http-equiv="origin-trial" content="AqJdO9k1bwBPAPms8acBjJFv8J7FnqbSVThgXL3i9xAC2ehc3iOdH+6ka3ZhD/U1GfynrPXKPTcGT/QsvqXeTw0AAABTeyJvcmlnaW4iOiJodHRwczovL3RydXN0dG9rZW4uZGV2OjQ0MyIsImZlYXR1cmUiOiJUcnVzdFRva2VucyIsImV4cGlyeSI6MTYxMzUwMDYwNn0=">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private State Token Demo</title>
     <style>
@@ -36,8 +35,7 @@
       var x = 0;
       function issueTokens() {
         var publicValue = document.getElementById('public').value;
-        var privateValue = document.getElementById('private').value;
-        fetch("/tt/i?public=" + publicValue + "&private=" + privateValue, { privateToken: {type: 'private-state-token', version: 1, operation: 'token-request', issuer: issuer}}).then(function(r) {
+        fetch("/tt/i?public=" + publicValue, { privateToken: {version: 1, operation: 'token-request', issuer: issuer}}).then(function(r) {
           r.text().then(function (text) {
             document.getElementById('response').innerHTML = text;
           });
@@ -50,7 +48,7 @@
         if (refresh) {
           policy = "refresh";
         }
-        fetch("/tt/r", { privateToken: {type: 'private-state-token', version: 1, operation: 'token-redemption', issuer: issuer, refreshPolicy: policy}}).then(function(r) {
+        fetch("/tt/r", { privateToken: {version: 1, operation: 'token-redemption', issuer: issuer, refreshPolicy: policy}}).then(function(r) {
           r.text().then(function (text) {
             document.getElementById('response').innerHTML = text;
 
@@ -62,7 +60,7 @@
       }
 
       function sendRR(refresh) {
-          fetch("/tt/echo", { privateToken: {type: 'private-state-token', version: 1, operation: 'send-redemption-record', issuers:[issuer]}}).then(function(r) {
+          fetch("/tt/echo", { privateToken: {version: 1, operation: 'send-redemption-record', issuers:[issuer]}}).then(function(r) {
           r.text().then(function (text) {
 	    var body = text.split(';')[1].split('"')[1];
 	    document.getElementById('response').innerText = atob(body);
@@ -85,9 +83,9 @@
 	  </code>
 	  <br/>
 	  <br/>
-	  Issuance (select a value for the public and private parameters):<br/>
+	  Issuance (select a value for the parameters):<br/>
 	  <code>
-	    fetch("https://trusttoken.dev/tt/i?public={0,1,2}&private={0,1}", {privateToken: {...}}).then(...);
+	    fetch("https://trusttoken.dev/tt/i?public={0,1,2,3,4,5,6}", {privateToken: {...}}).then(...);
 	  </code>
 	  <br/>
 	  <br/>
@@ -115,19 +113,11 @@
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
               </select>
               </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="private">Private Metadata:</label>
-            </td>
-            <td>
-              <select id="private" name="private">
-                <option value="0">0</option>
-                <option value="1">1</option>
-              </select>
-            </td>
           </tr>
           <tr>
             <td colspan="2">

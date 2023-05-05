@@ -24,10 +24,7 @@
 // PrivateStateTokenVersion represents what version of Private State Token to attempt with this
 // issuer.
 typedef enum private_state_token_version {
-  v2_allpublic,
-  v2_privatemetadata,
-  v3_allpublic,
-  v3_privatemetadata,
+  v1_allpublic,
 } PrivateStateTokenVersion;
 
 
@@ -54,22 +51,19 @@ public:
 
   // Attempts to issue up to |count| tokens requested in the Private State Token header |request|
   // using metadata values of |public_metadata| (one of the key IDs added to
-  // this issuer) and |private_metadata| (if using a version that supports
-  // private metadata). It returns the encoded response that should be included
+  // this issuer). It returns the encoded response that should be included
   // in the Private State Token header.
   std::string Issue(size_t *out_tokens_issued, uint32_t public_metadata,
-                    bool private_metadata, size_t count, std::string request);
+                    size_t count, std::string request);
 
   // Verifies the token provided in the Private State Token header |request| and outputs
-  // the value of the metadata in |*out_public| and |*out_private|, along with
-  // the raw token in |*out_token| (which should be used to detect
-  // double-spending of the same token) and the client data provided in the
-  // request in |*out_client_data|. The caller is responsible for assembling a
-  // redemption record to return to the client. It returns true on success and
-  // false on failure.
-  bool Redeem(uint32_t *out_public, bool *out_private,
-              std::vector<uint8_t> *out_token, std::string *out_client_data,
-              std::string request);
+  // the value of the metadata in |*out_public|, along with the raw token in |*out_token|
+  // (which should be used to detect double-spending of the same token) and the client
+  // data provided in the request in |*out_client_data|. The caller is responsible for
+  // assembling a redemption record to return to the client. It returns true on success
+  // and false on failure.
+  bool Redeem(uint32_t *out_public, std::vector<uint8_t> *out_token,
+              std::string *out_client_data, std::string request);
 
 private:
   PrivateStateTokenVersion version;
