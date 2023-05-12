@@ -236,7 +236,7 @@ int main(int argc, char **argv, char **envp) {
         try {
           if (key.compare("public") == 0) {
             public_metadata = std::stoi(value);
-            if (public_metadata < 0 || public_metadata > 2) {
+            if (public_metadata < 0 || public_metadata > 5) {
               cout << "\r\nBad Parameters.\r\n";
               return 1;
             }
