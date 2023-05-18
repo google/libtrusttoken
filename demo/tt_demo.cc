@@ -198,8 +198,8 @@ int main(int argc, char **argv, char **envp) {
     return 1;
   }
 
-  cout << "Content-type:text/plain\r\n";
   if (action == KEYS) {
+    cout << "Content-type:application/token-issuer-directory\r\n";
     PrivateStateTokenIssuer *issuer = new PrivateStateTokenIssuer(v1_allpublic, BATCH_SIZE);
     if (!LoadKeys(db, issuer)) {
       return 1;
@@ -208,6 +208,7 @@ int main(int argc, char **argv, char **envp) {
     cout << "\r\n";
     cout << commitment << "\r\n";
   } else if (action == ISSUE) {
+    cout << "Content-type:text/plain\r\n";
     const char *request = std::getenv("HTTP_SEC_PRIVATE_STATE_TOKEN");
     if (request == NULL) {
       cout << "\r\nSec-Private-State-Token header missing.\r\n";
@@ -261,6 +262,7 @@ int main(int argc, char **argv, char **envp) {
       cout << "\r\n\r\nError issuing tokens.\r\n";
     }
   } else if (action == REDEEM) {
+    cout << "Content-type:text/plain\r\n";
     const char *request = std::getenv("HTTP_SEC_PRIVATE_STATE_TOKEN");
     if (request == NULL) {
       cout << "\r\nSec-Private-State-Token header missing.\r\n";
@@ -311,6 +313,7 @@ int main(int argc, char **argv, char **envp) {
       cout << "Duplicate token.\r\n";
     }
   } else if (action == ECHO) {
+    cout << "Content-type:text/plain\r\n";
     const char *rr = std::getenv("HTTP_SEC_REDEMPTION_RECORD");
     cout << "\r\n" << rr << "\r\n";
   }
