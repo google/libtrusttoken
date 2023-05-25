@@ -199,7 +199,7 @@ int main(int argc, char **argv, char **envp) {
   }
 
   if (action == KEYS) {
-    cout << "Content-type:application/token-issuer-directory\r\n";
+    cout << "Content-type:application/pst-issuer-directory\r\n";
     PrivateStateTokenIssuer *issuer = new PrivateStateTokenIssuer(v1_allpublic, BATCH_SIZE);
     if (!LoadKeys(db, issuer)) {
       return 1;
