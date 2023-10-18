@@ -12,12 +12,9 @@ This is not an officially supported Google product.
 
 ## Versions
 
-Currently libtrusttoken supports two versions of the Private State Token API:
+Currently libtrusttoken supports one version of the Private State Token API:
 
 1. v2_allpublic - A variant that allows the use of 6 public metadata values.
-1. v2_privatemetadata - A variant that allows the use of one bit of private metadata and 3 public metadata values.
-
-Both versions of the Private State Token API are compatible with Chrome M113.
 
 ## Building
 
